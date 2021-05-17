@@ -7,6 +7,7 @@ int pageNum, pageFrameNum, windowSize, referLen;
 int referString[1000];
 int minFrame[20];
 int fifoFrame[20];
+int lruFrame[20];
 queue<int> q;
 void hanleInput(){
     FILE *fp;
@@ -147,11 +148,65 @@ void FIFO(){
     }
     cout << "Total Page Fault Count : " << pageFaultNum << '\n';
 } 
+void printLRU(int index, bool fault){
+    // 메모리 상태 변화 과정 //
+    
+    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
+    cout << "Memory State" << '\n';
+    for(int i=0;i<pageFrameNum;i++){
+        cout << lruFrame[i] << ' ' ;
+    }
+    if(fault) cout << "\nPAGE FAULT";
+    cout << "\n----------------------------------\n";
+
+}
+void handleLRU(int pageFaultNum, int index){
+    if(pageFaultNum <= pageFrameNum){
+        fifoFrame[pageFaultNum - 1] = referString[index];
+        // q.push(index);
+        printLRU(index,true);
+    }else{
+        int replacedIndex = -1;
+        replacedIndex = (pageFaultNum-1) % pageFrameNum;
+        // for(int i=0;i<pageFrameNum;i++){
+        //     if(fifoFrame[i] == q.pop()){
+        //         replacedIndex = i;
+        //         break;
+        //     }
+        // }
+        fifoFrame[replacedIndex] = referString[index];
+        // q.push(index);
+        printLRU(index,true);
+    }
+}
+void LRU(){
+    for(int i=0;i<pageFrameNum;i++){
+        lruFrame[i] = -1;
+    }
+    int pageFaultNum = 0;
+    for(int i=0;i<referLen;i++){
+        bool pageFault = true;
+        for(int j=0;j<pageFrameNum;j++){
+            if(referString[i] == lruFrame[j]){
+                pageFault = false;
+                printLRU(i,false);
+                break;
+            }
+        }
+        if(pageFault){
+            pageFaultNum++;
+            printLRU(pageFaultNum, i);
+        }
+    }
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+} 
 int main(){
     hanleInput();
     cout << "MIN\n";
     MIN();
-    cout << "FIFO\n";
+    cout << "\nFIFO\n";
     FIFO();
+    cout << "\nLRU\n";
+    LRU();
     return 0;
 }

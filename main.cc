@@ -10,10 +10,11 @@ int fifoFrame[20];
 int lruFrame[20];
 int lfuFrame[20];
 int lfuCount[1000]={0};
+vector<int> wsPage;
 queue<int> q;
 void hanleInput(){
     FILE *fp;
-    fp = fopen("input.txt","r");
+    fp = fopen("input1.txt","r");
     fscanf(fp,"%d %d %d %d",&pageNum,&pageFrameNum,&windowSize,&referLen);
     for(int i=0;i<referLen;i++){
         fscanf(fp,"%d ",&referString[i]);
@@ -317,15 +318,90 @@ void LFU(){
     }
     cout << "Total Page Fault Count : " << pageFaultNum << '\n';
 } 
+void printWS(int index, bool fault){
+    // 메모리 상태 변화 과정 //
+    
+    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
+    cout << "Memory State" << '\n';
+    for(int i=0;i<wsPage.size();i++){
+        cout << wsPage[i] << ' ' ;
+    }
+    if(fault) cout << "\nPAGE FAULT";
+    cout << "\n----------------------------------\n";
+
+}
+void handleWS(int index, bool fault){
+    int refered = referString[index];
+    vector<int> popArr;
+    
+    if(index < windowSize){
+        for(int i=0;i<wsPage.size();i++){
+             bool pop = true;
+            for(int j=index-1;j>=0;j--){
+                if(wsPage[i] == referString[j] || refered == wsPage[i]){
+                    pop = false;
+                    break;
+                }
+            }
+            if(pop) popArr.push_back(i);
+        }
+        
+    }else{
+        printf("%d\n",index);
+        for(int i=0;i<wsPage.size();i++){
+            bool pop = true;
+            
+            for(int j=index-1;j>=index-windowSize;j--){
+                if(wsPage[i] == referString[j]|| refered == wsPage[i]){
+                    
+                    pop = false;
+                    break;
+                }
+            }
+            if(pop) popArr.push_back(i);
+        }
+    }
+   
+    for(int i=0;i<popArr.size();i++){
+        
+        wsPage.erase(wsPage.begin() + popArr[i]);
+    }
+    if(fault) wsPage.push_back(refered);
+    printWS(index,fault);
+    
+}
+void WS(){
+    // for(int i=0;i<pageNum;i++){
+    //     wsPage[i] = -1;
+    // }
+    int pageFaultNum = 0;
+    for(int i=0;i<referLen;i++){
+        bool pageFault = true;
+        for(int j=0;j<wsPage.size();j++){
+            if(referString[i] == wsPage[j]){
+                pageFault = false;
+                handleWS(i,false);
+                break;
+            }
+        }
+        if(pageFault){
+            pageFaultNum++;
+            handleWS(i,true);
+        }
+    }
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+} 
 int main(){
     hanleInput();
-    cout << "MIN\n\n";
-    MIN();
-    cout << "\nFIFO\n\n";
-    FIFO();
-    cout << "\nLRU\n\n";
-    LRU();
-    cout << "\nLFU\n\n";
-    LFU();
+    // cout << "MIN\n\n";
+    // MIN();
+    // cout << "\nFIFO\n\n";
+    // FIFO();
+    // cout << "\nLRU\n\n";
+    // LRU();
+    // cout << "\nLFU\n\n";
+    // LFU();
+    cout << "\nWS\n\n";
+    WS();
     return 0;
 }

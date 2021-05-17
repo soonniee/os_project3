@@ -18,6 +18,7 @@ void hanleInput(){
 }
 void printMIN(int index, bool fault){
     // 메모리 상태 변화 과정 //
+    
     cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
     cout << "Memory State" << '\n';
     for(int i=0;i<pageFrameNum;i++){
@@ -35,7 +36,6 @@ bool cmp(const pair<int, int> &a, const pair<int, int> &b)
 void handleMIN(int pageFaultNum, int index){
     if(pageFaultNum <= pageFrameNum){
         minFrame[pageFaultNum - 1] = referString[index];
-        q.push(index);
         printMIN(index,true);
     }else{
         int replacedIndex = -1;
@@ -95,45 +95,35 @@ void MIN(){
     }
     cout << "Total Page Fault Count : " << pageFaultNum << '\n';
 } 
+void printFIFO(int index, bool fault){
+    // 메모리 상태 변화 과정 //
+    
+    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
+    cout << "Memory State" << '\n';
+    for(int i=0;i<pageFrameNum;i++){
+        cout << fifoFrame[i] << ' ' ;
+    }
+    if(fault) cout << "\nPAGE FAULT";
+    cout << "\n----------------------------------\n";
+
+}
 void handleFIFO(int pageFaultNum, int index){
     if(pageFaultNum <= pageFrameNum){
         fifoFrame[pageFaultNum - 1] = referString[index];
+        // q.push(index);
         printFIFO(index,true);
     }else{
         int replacedIndex = -1;
-        // vector<pair<int,int>> referTime;
-        int max = -1;
-        int tieBreak = -1;
-        int tieBreakIndex = -1;
-        // printf("%d\n",index);
-        for(int i=0;i<pageFrameNum;i++){
-            bool refered = false;
-            for(int j=index+1;j<referLen;j++){
-                if(minFrame[i] == referString[j]){
-                    if(max < j){
-                        replacedIndex = i;
-                        max = j;
-                    } 
-                    refered = true;
-                    // referTime.push_back(make_pair(i,j));
-                    break;
-                }
-            }
-            if(!refered){
-                if(tieBreak < minFrame[i]){
-                    tieBreak = minFrame[i];
-                    tieBreakIndex = i;
-                }
-                // referTime.push_back(make_pair(i,referLen));
-            }
-        }
-        // sort(referTime.begin(),referTime.end(),cmp);
-        // replacedIndex = referTime.back().first;
-        
-        // cout << "replaced : " << replacedIndex <<"\n";
-        if(tieBreakIndex == -1) minFrame[replacedIndex] = referString[index];
-        else minFrame[tieBreakIndex] = referString[index];
-        printMIN(index,true);
+        replacedIndex = (pageFaultNum-1) % pageFrameNum;
+        // for(int i=0;i<pageFrameNum;i++){
+        //     if(fifoFrame[i] == q.pop()){
+        //         replacedIndex = i;
+        //         break;
+        //     }
+        // }
+        fifoFrame[replacedIndex] = referString[index];
+        // q.push(index);
+        printFIFO(index,true);
     }
 }
 void FIFO(){
@@ -159,7 +149,9 @@ void FIFO(){
 } 
 int main(){
     hanleInput();
+    cout << "MIN\n";
     MIN();
+    cout << "FIFO\n";
     FIFO();
     return 0;
 }

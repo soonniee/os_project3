@@ -8,6 +8,8 @@ int referString[1000];
 int minFrame[20];
 int fifoFrame[20];
 int lruFrame[20];
+int lfuFrame[20];
+int lfuCount[1000]={0};
 queue<int> q;
 void hanleInput(){
     FILE *fp;
@@ -42,7 +44,7 @@ void handleMIN(int pageFaultNum, int index){
         int replacedIndex = -1;
         // vector<pair<int,int>> referTime;
         int max = -1;
-        int tieBreak = -1;
+        int tieBreak = pageNum;
         int tieBreakIndex = -1;
         // printf("%d\n",index);
         for(int i=0;i<pageFrameNum;i++){
@@ -59,7 +61,7 @@ void handleMIN(int pageFaultNum, int index){
                 }
             }
             if(!refered){
-                if(tieBreak < minFrame[i]){
+                if(tieBreak > minFrame[i]){
                     tieBreak = minFrame[i];
                     tieBreakIndex = i;
                 }
@@ -163,14 +165,14 @@ void printLRU(int index, bool fault){
 void handleLRU(int pageFaultNum, int index){
     if(pageFaultNum <= pageFrameNum){
         lruFrame[pageFaultNum - 1] = referString[index];
-        q.push(index);
+        // q.push(index);
         printLRU(index,true);
     }else{
         
         int replacedIndex = -1;
         // vector<pair<int,int>> referTime;
         int min = referLen;
-        int tieBreak = -1;
+        int tieBreak = pageNum;
         int tieBreakIndex = -1;
         // printf("%d\n",index);
         for(int i=0;i<pageFrameNum;i++){
@@ -187,7 +189,7 @@ void handleLRU(int pageFaultNum, int index){
                 }
             }
             if(!refered){
-                if(tieBreak < minFrame[i]){
+                if(tieBreak > minFrame[i]){
                     tieBreak = minFrame[i];
                     tieBreakIndex = i;
                 }
@@ -206,13 +208,13 @@ void handleLRU(int pageFaultNum, int index){
 }
 void LRU(){
     for(int i=0;i<pageFrameNum;i++){
-        lruFrame[i] = -1;
+        lfuFrame[i] = -1;
     }
     int pageFaultNum = 0;
     for(int i=0;i<referLen;i++){
         bool pageFault = true;
         for(int j=0;j<pageFrameNum;j++){
-            if(referString[i] == lruFrame[j]){
+            if(referString[i] == lfuFrame[j]){
                 pageFault = false;
                 printLRU(i,false);
                 break;
@@ -225,15 +227,105 @@ void LRU(){
     }
     cout << "Total Page Fault Count : " << pageFaultNum << '\n';
 } 
+void printLFU(int index, bool fault){
+    // 메모리 상태 변화 과정 //
+    
+    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
+    cout << "Memory State" << '\n';
+    for(int i=0;i<pageFrameNum;i++){
+        cout << lfuFrame[i] << ' ' ;
+    }
+    if(fault) cout << "\nPAGE FAULT";
+    cout << "\n----------------------------------\n";
+
+}
+void handleLFU(int pageFaultNum, int index){
+    if(pageFaultNum <= pageFrameNum){
+        lfuFrame[pageFaultNum - 1] = referString[index];
+        printLFU(index,true);
+    }else{
+        
+        int replacedIndex = -1;
+        int min = referLen;
+        int max = referLen;
+        int tieBreak = pageNum;
+        int tieBreakIndex = -1;
+        // printf("%d\n",index);
+        for(int i=0;i<pageFrameNum;i++){
+            int frequency = lfuCount[lfuFrame[i]];
+            if(max < frequency) continue;
+            else if(max==frequency){
+                
+                bool refered = false;
+                for(int j=index-1;j>=0;j--){
+                    if(lfuFrame[i] == referString[j]){
+                        if(min > j){
+                            replacedIndex = i;
+                            min = j;
+                        } 
+                        refered = true;
+                        break;
+                    }
+                }
+                if(!refered){
+                    if(tieBreak > lfuFrame[i]){
+                        tieBreak = lfuFrame[i];
+                        tieBreakIndex = i;
+                    }
+                    
+                }
+            }
+            else{
+                replacedIndex = i;
+                max = frequency;
+                for(int j=index-1;j>=0;j--){
+                    if(lfuFrame[i] == referString[j]){
+                        if(min > j){
+                            replacedIndex = i;
+                            min = j;
+                        } 
+                        break;
+                    }
+                }
+            }
+        }
+        if(tieBreakIndex == -1) lfuFrame[replacedIndex] = referString[index];
+        else lfuFrame[tieBreakIndex] = referString[index];
+        printLFU(index,true);
+
+    }
+}
+void LFU(){
+    for(int i=0;i<pageFrameNum;i++){
+        lfuFrame[i] = -1;
+    }
+    int pageFaultNum = 0;
+    for(int i=0;i<referLen;i++){
+        bool pageFault = true;
+        lfuCount[referString[i]] += 1;
+        for(int j=0;j<pageFrameNum;j++){
+            if(referString[i] == lfuFrame[j]){
+                pageFault = false;
+                printLFU(i,false);
+                break;
+            }
+        }
+        if(pageFault){
+            pageFaultNum++;
+            handleLFU(pageFaultNum, i);
+        }
+    }
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+} 
 int main(){
     hanleInput();
-    cout << "MIN\n";
+    cout << "MIN\n\n";
     MIN();
-    cout << "\nFIFO\n";
+    cout << "\nFIFO\n\n";
     FIFO();
-    cout << "\nLRU\n";
+    cout << "\nLRU\n\n";
     LRU();
-    cout << "\nLFU\n";
-    LRU();
+    cout << "\nLFU\n\n";
+    LFU();
     return 0;
 }

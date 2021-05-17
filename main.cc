@@ -162,21 +162,46 @@ void printLRU(int index, bool fault){
 }
 void handleLRU(int pageFaultNum, int index){
     if(pageFaultNum <= pageFrameNum){
-        fifoFrame[pageFaultNum - 1] = referString[index];
-        // q.push(index);
+        lruFrame[pageFaultNum - 1] = referString[index];
+        q.push(index);
         printLRU(index,true);
     }else{
+        
         int replacedIndex = -1;
-        replacedIndex = (pageFaultNum-1) % pageFrameNum;
-        // for(int i=0;i<pageFrameNum;i++){
-        //     if(fifoFrame[i] == q.pop()){
-        //         replacedIndex = i;
-        //         break;
-        //     }
-        // }
-        fifoFrame[replacedIndex] = referString[index];
-        // q.push(index);
+        // vector<pair<int,int>> referTime;
+        int min = referLen;
+        int tieBreak = -1;
+        int tieBreakIndex = -1;
+        // printf("%d\n",index);
+        for(int i=0;i<pageFrameNum;i++){
+            bool refered = false;
+            for(int j=index-1;j>=0;j--){
+                if(lruFrame[i] == referString[j]){
+                    if(min > j){
+                        replacedIndex = i;
+                        min = j;
+                    } 
+                    refered = true;
+                    // referTime.push_back(make_pair(i,j));
+                    break;
+                }
+            }
+            if(!refered){
+                if(tieBreak < minFrame[i]){
+                    tieBreak = minFrame[i];
+                    tieBreakIndex = i;
+                }
+                // referTime.push_back(make_pair(i,referLen));
+            }
+        }
+        // sort(referTime.begin(),referTime.end(),cmp);
+        // replacedIndex = referTime.back().first;
+        
+        // cout << "replaced : " << replacedIndex <<"\n";
+        if(tieBreakIndex == -1) lruFrame[replacedIndex] = referString[index];
+        else lruFrame[tieBreakIndex] = referString[index];
         printLRU(index,true);
+
     }
 }
 void LRU(){
@@ -195,7 +220,7 @@ void LRU(){
         }
         if(pageFault){
             pageFaultNum++;
-            printLRU(pageFaultNum, i);
+            handleLRU(pageFaultNum, i);
         }
     }
     cout << "Total Page Fault Count : " << pageFaultNum << '\n';
@@ -207,6 +232,8 @@ int main(){
     cout << "\nFIFO\n";
     FIFO();
     cout << "\nLRU\n";
+    LRU();
+    cout << "\nLFU\n";
     LRU();
     return 0;
 }

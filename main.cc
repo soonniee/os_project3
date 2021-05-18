@@ -24,6 +24,7 @@ void hanleInput(){
     for(int i=0;i<referLen;i++){
         fscanf(fp,"%d ",&referString[i]);
     }
+    fclose(fp);
 }
 void printMIN(int index, bool fault){
     // 메모리 상태 변화 과정 //

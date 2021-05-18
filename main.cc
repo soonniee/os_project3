@@ -1,34 +1,38 @@
 #include<iostream>
 #include<vector>
 #include<algorithm>
+#include<iomanip>
 using namespace std;
 int pageNum, pageFrameNum, windowSize, referLen;
-int referString[1000];
-int minFrame[20];
-int fifoFrame[20];
-int lruFrame[20];
-int lfuFrame[20];
-int lfuCount[1000]={0};
+int *referString;
+int *minFrame;
+int *fifoFrame;
+int *lruFrame;
+int *lfuFrame;
+int *lfuCount;
 vector<int> wsPage;
 void hanleInput(){
     FILE *fp;
-    fp = fopen("input1.txt","r");
+    fp = fopen("input.txt","r");
     fscanf(fp,"%d %d %d %d",&pageNum,&pageFrameNum,&windowSize,&referLen);
+    referString = (int*)malloc(sizeof(int)*referLen);
+    minFrame = (int*)malloc(sizeof(int)*pageFrameNum);
+    fifoFrame = (int*)malloc(sizeof(int)*pageFrameNum);
+    lruFrame = (int*)malloc(sizeof(int)*pageFrameNum);
+    lfuFrame = (int*)malloc(sizeof(int)*pageFrameNum);
+    lfuCount = (int*)malloc(sizeof(int)*pageNum);
     for(int i=0;i<referLen;i++){
         fscanf(fp,"%d ",&referString[i]);
     }
 }
 void printMIN(int index, bool fault){
     // 메모리 상태 변화 과정 //
-    
-    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
-    cout << "Memory State" << '\n';
+    if(fault) cout << "| " << setw(3) << index + 1 << "  | " << setw(5)<< referString[index] << " | " << " F     | " ;
+    else cout << "| " <<setw(3) <<  index + 1 << "  | " << setw(5)<< referString[index] << " | " << "       | ";
     for(int i=0;i<pageFrameNum;i++){
-        cout << minFrame[i] << ' ' ;
+        if(minFrame[i]!=-1) cout << minFrame[i] << ' ' ;
     }
-    if(fault) cout << "\nPAGE FAULT";
-    cout << "\n----------------------------------\n";
-
+    cout << '\n';
 }
 
 void handleMIN(int pageFaultNum, int index){
@@ -88,18 +92,17 @@ void MIN(){
             handleMIN(pageFaultNum, i);
         }
     }
-    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n' << '\n';
 } 
 void printFIFO(int index, bool fault){
     // 메모리 상태 변화 과정 //
-    
-    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
-    cout << "Memory State" << '\n';
+    if(fault) cout << "| " << setw(3) << index + 1 << "  | " << setw(5)<< referString[index] << " | " << " F     | " ;
+    else cout << "| " <<setw(3) <<  index + 1 << "  | " << setw(5)<< referString[index] << " | " << "       | ";
     for(int i=0;i<pageFrameNum;i++){
-        cout << fifoFrame[i] << ' ' ;
+        if(fifoFrame[i]!=-1) cout << fifoFrame[i] << ' ' ;
     }
-    if(fault) cout << "\nPAGE FAULT";
-    cout << "\n----------------------------------\n";
+    cout << '\n';
+   
 
 }
 void handleFIFO(int pageFaultNum, int index){
@@ -135,18 +138,18 @@ void FIFO(){
             handleFIFO(pageFaultNum, i);
         }
     }
-    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n' << '\n';
 } 
 void printLRU(int index, bool fault){
+
     // 메모리 상태 변화 과정 //
-    
-    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
-    cout << "Memory State" << '\n';
+    if(fault) cout << "| " << setw(3) << index + 1 << "  | " << setw(5)<< referString[index] << " | " << " F     | " ;
+    else cout << "| " <<setw(3) <<  index + 1 << "  | " << setw(5)<< referString[index] << " | " << "       | ";
     for(int i=0;i<pageFrameNum;i++){
-        cout << lruFrame[i] << ' ' ;
+        if(lruFrame[i]!=-1) cout << lruFrame[i] << ' ' ;
     }
-    if(fault) cout << "\nPAGE FAULT";
-    cout << "\n----------------------------------\n";
+    cout << '\n';
+    
 
 }
 void handleLRU(int pageFaultNum, int index){
@@ -192,13 +195,13 @@ void handleLRU(int pageFaultNum, int index){
 }
 void LRU(){
     for(int i=0;i<pageFrameNum;i++){
-        lfuFrame[i] = -1;
+        lruFrame[i] = -1;
     }
     int pageFaultNum = 0;
     for(int i=0;i<referLen;i++){
         bool pageFault = true;
         for(int j=0;j<pageFrameNum;j++){
-            if(referString[i] == lfuFrame[j]){
+            if(referString[i] == lruFrame[j]){
                 pageFault = false;
                 printLRU(i,false);
                 break;
@@ -209,18 +212,16 @@ void LRU(){
             handleLRU(pageFaultNum, i);
         }
     }
-    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n' << '\n';
 } 
 void printLFU(int index, bool fault){
     // 메모리 상태 변화 과정 //
-    
-    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
-    cout << "Memory State" << '\n';
+    if(fault) cout << "| " << setw(3) << index + 1 << "  | " << setw(5)<< referString[index] << " | " << " F     | " ;
+    else cout << "| " <<setw(3) <<  index + 1 << "  | " << setw(5)<< referString[index] << " | " << "       | ";
     for(int i=0;i<pageFrameNum;i++){
-        cout << lfuFrame[i] << ' ' ;
+        if(lfuFrame[i]!=-1) cout << lfuFrame[i] << ' ' ;
     }
-    if(fault) cout << "\nPAGE FAULT";
-    cout << "\n----------------------------------\n";
+    cout << '\n';
 
 }
 void handleLFU(int pageFaultNum, int index){
@@ -237,12 +238,14 @@ void handleLFU(int pageFaultNum, int index){
         
         for(int i=0;i<pageFrameNum;i++){
             int frequency = lfuCount[lfuFrame[i]];
+            
             if(max < frequency) continue;
             else if(max==frequency){
                 
                 bool refered = false;
                 for(int j=index-1;j>=0;j--){
                     if(lfuFrame[i] == referString[j]){
+                        
                         if(min > j){
                             replacedIndex = i;
                             min = j;
@@ -272,6 +275,7 @@ void handleLFU(int pageFaultNum, int index){
                     }
                 }
             }
+            
         }
         if(tieBreakIndex == -1) lfuFrame[replacedIndex] = referString[index];
         else lfuFrame[tieBreakIndex] = referString[index];
@@ -282,6 +286,9 @@ void handleLFU(int pageFaultNum, int index){
 void LFU(){
     for(int i=0;i<pageFrameNum;i++){
         lfuFrame[i] = -1;
+    }
+    for(int i=0;i<pageNum;i++){
+        lfuCount[i] = 0;
     }
     int pageFaultNum = 0;
     for(int i=0;i<referLen;i++){
@@ -299,19 +306,16 @@ void LFU(){
             handleLFU(pageFaultNum, i);
         }
     }
-    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n' << '\n';
 } 
 void printWS(int index, bool fault){
     // 메모리 상태 변화 과정 //
-    
-    cout << "Time : " << index + 1 << "  Ref. string : " << referString[index] << '\n';
-    cout << "Memory State" << '\n';
+    if(fault) cout << "| " << setw(3) << index + 1 << "  | " << setw(5)<< referString[index] << " | " << " F     | " ;
+    else cout << "| " <<setw(3) <<  index + 1 << "  | " << setw(5)<< referString[index] << " | " << "       | ";
     for(int i=0;i<wsPage.size();i++){
         cout << wsPage[i] << ' ' ;
     }
-    if(fault) cout << "\nPAGE FAULT";
-    cout << "\n----------------------------------\n";
-
+    cout <<'\n';   
 }
 void handleWS(int index, bool fault){
     int refered = referString[index];
@@ -330,7 +334,7 @@ void handleWS(int index, bool fault){
         }
         
     }else{
-        printf("%d\n",index);
+        
         for(int i=0;i<wsPage.size();i++){
             bool pop = true;
             
@@ -370,19 +374,35 @@ void WS(){
             handleWS(i,true);
         }
     }
-    cout << "Total Page Fault Count : " << pageFaultNum << '\n';
+    cout << "Total Page Fault Count : " << pageFaultNum << '\n' << '\n';
+}
+void printTop(){
+    cout << "+------+-------+--------+--------\n";
+    cout << "| Time | Ref.S | Page.F | Memory\n";
+    cout << "+------+-------+--------+--------\n";
 } 
 int main(){
     hanleInput();
-    // cout << "MIN\n\n";
-    // MIN();
-    // cout << "\nFIFO\n\n";
-    // FIFO();
-    // cout << "\nLRU\n\n";
-    // LRU();
-    // cout << "\nLFU\n\n";
-    // LFU();
-    cout << "\nWS\n\n";
+    cout << "MIN\n";
+    printTop();
+    MIN();
+    cout << "\nFIFO\n";
+    printTop();
+    FIFO();
+    cout << "\nLRU\n";
+    printTop();
+    LRU();
+    cout << "\nLFU\n";
+    printTop();
+    LFU();
+    cout << "\nWS\n";
+    printTop();
     WS();
+    free(referString);
+    free(minFrame);
+    free(fifoFrame);
+    free(lruFrame);
+    free(lfuFrame);
+    free(lfuCount);
     return 0;
 }

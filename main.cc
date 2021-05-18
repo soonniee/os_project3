@@ -1,7 +1,6 @@
 #include<iostream>
 #include<vector>
 #include<algorithm>
-#include<queue>
 using namespace std;
 int pageNum, pageFrameNum, windowSize, referLen;
 int referString[1000];
@@ -11,7 +10,6 @@ int lruFrame[20];
 int lfuFrame[20];
 int lfuCount[1000]={0};
 vector<int> wsPage;
-queue<int> q;
 void hanleInput(){
     FILE *fp;
     fp = fopen("input1.txt","r");
@@ -32,10 +30,6 @@ void printMIN(int index, bool fault){
     cout << "\n----------------------------------\n";
 
 }
-bool cmp(const pair<int, int> &a, const pair<int, int> &b)
-{
-    return a.second < b.second;
-}
 
 void handleMIN(int pageFaultNum, int index){
     if(pageFaultNum <= pageFrameNum){
@@ -43,11 +37,11 @@ void handleMIN(int pageFaultNum, int index){
         printMIN(index,true);
     }else{
         int replacedIndex = -1;
-        // vector<pair<int,int>> referTime;
+        
         int max = -1;
         int tieBreak = pageNum;
         int tieBreakIndex = -1;
-        // printf("%d\n",index);
+        
         for(int i=0;i<pageFrameNum;i++){
             bool refered = false;
             for(int j=index+1;j<referLen;j++){
@@ -57,7 +51,7 @@ void handleMIN(int pageFaultNum, int index){
                         max = j;
                     } 
                     refered = true;
-                    // referTime.push_back(make_pair(i,j));
+                    
                     break;
                 }
             }
@@ -66,13 +60,10 @@ void handleMIN(int pageFaultNum, int index){
                     tieBreak = minFrame[i];
                     tieBreakIndex = i;
                 }
-                // referTime.push_back(make_pair(i,referLen));
+                
             }
         }
-        // sort(referTime.begin(),referTime.end(),cmp);
-        // replacedIndex = referTime.back().first;
         
-        // cout << "replaced : " << replacedIndex <<"\n";
         if(tieBreakIndex == -1) minFrame[replacedIndex] = referString[index];
         else minFrame[tieBreakIndex] = referString[index];
         printMIN(index,true);
@@ -114,19 +105,14 @@ void printFIFO(int index, bool fault){
 void handleFIFO(int pageFaultNum, int index){
     if(pageFaultNum <= pageFrameNum){
         fifoFrame[pageFaultNum - 1] = referString[index];
-        // q.push(index);
+        
         printFIFO(index,true);
     }else{
         int replacedIndex = -1;
         replacedIndex = (pageFaultNum-1) % pageFrameNum;
-        // for(int i=0;i<pageFrameNum;i++){
-        //     if(fifoFrame[i] == q.pop()){
-        //         replacedIndex = i;
-        //         break;
-        //     }
-        // }
+        
         fifoFrame[replacedIndex] = referString[index];
-        // q.push(index);
+        
         printFIFO(index,true);
     }
 }
@@ -171,7 +157,7 @@ void handleLRU(int pageFaultNum, int index){
     }else{
         
         int replacedIndex = -1;
-        // vector<pair<int,int>> referTime;
+        
         int min = referLen;
         int tieBreak = pageNum;
         int tieBreakIndex = -1;
@@ -185,7 +171,7 @@ void handleLRU(int pageFaultNum, int index){
                         min = j;
                     } 
                     refered = true;
-                    // referTime.push_back(make_pair(i,j));
+                    
                     break;
                 }
             }
@@ -194,13 +180,10 @@ void handleLRU(int pageFaultNum, int index){
                     tieBreak = minFrame[i];
                     tieBreakIndex = i;
                 }
-                // referTime.push_back(make_pair(i,referLen));
+                
             }
         }
-        // sort(referTime.begin(),referTime.end(),cmp);
-        // replacedIndex = referTime.back().first;
         
-        // cout << "replaced : " << replacedIndex <<"\n";
         if(tieBreakIndex == -1) lruFrame[replacedIndex] = referString[index];
         else lruFrame[tieBreakIndex] = referString[index];
         printLRU(index,true);
@@ -251,7 +234,7 @@ void handleLFU(int pageFaultNum, int index){
         int max = referLen;
         int tieBreak = pageNum;
         int tieBreakIndex = -1;
-        // printf("%d\n",index);
+        
         for(int i=0;i<pageFrameNum;i++){
             int frequency = lfuCount[lfuFrame[i]];
             if(max < frequency) continue;
@@ -371,9 +354,7 @@ void handleWS(int index, bool fault){
     
 }
 void WS(){
-    // for(int i=0;i<pageNum;i++){
-    //     wsPage[i] = -1;
-    // }
+    
     int pageFaultNum = 0;
     for(int i=0;i<referLen;i++){
         bool pageFault = true;
